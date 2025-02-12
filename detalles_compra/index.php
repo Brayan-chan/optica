@@ -2,6 +2,10 @@
 include '../Config/config.php';
 session_start();
 
+if (!isset($_SESSION['cart'])) {
+    $_SESSION['cart'] = [];
+}
+
 $cart = $_SESSION['cart'];
 $products = [];
 
@@ -15,20 +19,35 @@ if (!empty($cart)) {
     }
 }
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_cart'])) {
-    foreach ($_POST['quantities'] as $productId => $quantity) {
-        if ($quantity > 0) {
-            $_SESSION['cart'][$productId] = $quantity;
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    if (isset($_POST['add_to_cart'])) {
+        $productId = $_POST['product_id'];
+        if (isset($_SESSION['cart'][$productId])) {
+            $_SESSION['cart'][$productId]++;
         } else {
-            unset($_SESSION['cart'][$productId]);
+            $_SESSION['cart'][$productId] = 1;
         }
+    } elseif (isset($_POST['remove_from_cart'])) {
+        $productId = $_POST['product_id'];
+        if (isset($_SESSION['cart'][$productId])) {
+            $_SESSION['cart'][$productId]--;
+            if ($_SESSION['cart'][$productId] <= 0) {
+                unset($_SESSION['cart'][$productId]);
+            }
+        }
+    } elseif (isset($_POST['update_cart'])) {
+        foreach ($_POST['quantities'] as $productId => $quantity) {
+            if ($quantity > 0) {
+                $_SESSION['cart'][$productId] = $quantity;
+            } else {
+                unset($_SESSION['cart'][$productId]);
+            }
+        }
+    } elseif (isset($_POST['order'])) {
+        header("Location: ../pago/index.php");
+        exit();
     }
     header("Location: " . $_SERVER['PHP_SELF']);
-    exit();
-}
-
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['order'])) {
-    header("Location: ../pago/index.php");
     exit();
 }
 ?>
@@ -69,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['order'])) {
     <div class="max-w-4xl mx-auto rounded-3xl bg-[#121212] p-8">
         <h1 class="text-4xl font-bold text-center mb-12 tracking-wider">DETALLES DE COMPRA</h1>
         
-        <form method="post" action="">
+        <form method="post" action="" id="cart-form">
             <?php foreach ($products as $product): ?>
                 <div class="flex items-center justify-between mb-8 p-4">
                     <div class="flex items-center gap-8">
@@ -87,7 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['order'])) {
                             <span class="text-sm text-gray-400 mr-2">Cantidad</span>
                             <div class="quantity-container flex items-center rounded-full px-4 py-1">
                                 <button type="button" class="text-xl px-2 hover:opacity-75" onclick="updateQuantity(<?php echo $product['IdP']; ?>, -1)">-</button>
-                                <input type="number" name="quantities[<?php echo $product['IdP']; ?>]" value="<?php echo $cart[$product['IdP']]; ?>" min="1" class="quantity-input" onchange="this.form.submit()">
+                                <input type="number" name="quantities[<?php echo $product['IdP']; ?>]" value="<?php echo $cart[$product['IdP']]; ?>" min="1" class="quantity-input" onchange="updateCart()">
                                 <button type="button" class="text-xl px-2 hover:opacity-75" onclick="updateQuantity(<?php echo $product['IdP']; ?>, 1)">+</button>
                             </div>
                         </div>
@@ -118,9 +137,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['order'])) {
                 if (currentValue < 1) currentValue = 1;
                 input.value = currentValue;
             }
-            input.form.submit();
+            updateCart();
         }
 
+        function updateCart() {
+            const form = document.getElementById('cart-form');
+            const formData = new FormData(form);
+            formData.append('update_cart', true);
+
+            fetch('', {
+                method: 'POST',
+                body: formData
+            }).then(response => response.text()).then(data => {
+                // Optionally handle the response data
+            });
+        }
     </script>
 </body>
 </html>
