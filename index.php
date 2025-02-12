@@ -9,6 +9,22 @@ function getProductsByType($type) {
     return $stmt->get_result();
 }
 
+session_start();
+if (!isset($_SESSION['cart'])) {
+    $_SESSION['cart'] = [];
+}
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_to_cart'])) {
+    $productId = $_POST['product_id'];
+    if (isset($_SESSION['cart'][$productId])) {
+        $_SESSION['cart'][$productId]++;
+    } else {
+        $_SESSION['cart'][$productId] = 1;
+    }
+    header("Location: " . $_SERVER['PHP_SELF'] . "?type=" . $_GET['type']);
+    exit();
+}
+
 $type = isset($_GET['type']) ? $_GET['type'] : 'Oftálmico';
 $products = getProductsByType($type);
 ?>
@@ -57,10 +73,13 @@ $products = getProductsByType($type);
                         <path d="M32 32c17.7 0 32 14.3 32 32l0 336c0 8.8 7.2 16 16 16l400 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L80 480c-44.2 0-80-35.8-80-80L0 64C0 46.3 14.3 32 32 32zm96 96c0-17.7 14.3-32 32-32l192 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-192 0c-17.7 0-32-14.3-32-32zm32 64l128 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-128 0c-17.7 0-32-14.3-32-32s14.3-32 32-32zm0 96l256 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-256 0c-17.7 0-32-14.3-32-32s14.3-32 32-32z"/>
                     </svg>
                 </button>
-                <button onclick="detallesCompra()" class="p-2 rounded-full bg-white/10">
+                <button onclick="window.location.href='detalles_compra/index.php'" class="p-2 rounded-full bg-white/10 relative">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
                     </svg>
+                    <span class="absolute top-0 right-0 inline-block w-6 h-6 text-center text-white bg-red-600 rounded-full">
+                        <?php echo array_sum($_SESSION['cart']); ?>
+                    </span>
                 </button>
             </div>
         </header>
@@ -82,9 +101,12 @@ $products = getProductsByType($type);
                     <img src="assets/<?php echo strtolower($product['Tipo']); ?>.png" alt="Lentes <?php echo $product['Tipo']; ?>" class="w-full h-48 object-contain mb-4">
                     <div class="flex justify-between items-center">
                         <span class="text-lg font-semibold">$<?php echo number_format($product['Precio'], 2); ?></span>
-                        <button class="px-4 py-1 rounded-full bg-white/10 hover:bg-white/20 transition-colors">
-                            Agregar
-                        </button>
+                        <form method="post" action="">
+                            <input type="hidden" name="product_id" value="<?php echo $product['IdP']; ?>">
+                            <button type="submit" name="add_to_cart" class="px-4 py-1 rounded-full bg-white/10 hover:bg-white/20 transition-colors">
+                                Agregar
+                            </button>
+                        </form>
                     </div>
                 </div>
             <?php endwhile; ?>
@@ -101,7 +123,10 @@ $products = getProductsByType($type);
             const type = document.getElementById('product-filter').value;
             window.location.href = `index.php?type=${type}`;
         }
+
+        function detallesVentas() {
+            window.location.href = 'detalle_ventas/index.php';
+        }
     </script>
 </body>
-
 </html>
