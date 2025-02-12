@@ -1,3 +1,19 @@
+<?php
+include '../Config/config.php';
+
+$idVenta = $_GET['idVenta'];
+
+$sql = "SELECT Venta.*, Sucursal.Nombre AS SucursalNombre, Relacion_V_OC.MetodoPago, Relacion_V_OC.PagoInicial, Relacion_V_OC.Deuda, Relacion_V_OC.FechaPago, Relacion_V_OC.Estado 
+        FROM Venta 
+        JOIN Sucursal ON Venta.FK_IdSucursal = Sucursal.IdS
+        JOIN Relacion_V_OC ON Venta.IdV = Relacion_V_OC.FK_IdV
+        WHERE Venta.IdV = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $idVenta);
+$stmt->execute();
+$result = $stmt->get_result();
+$venta = $result->fetch_assoc();
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -53,12 +69,12 @@
                         <td class="p-4">
                             <input type="checkbox" class="checkbox">
                         </td>
-                        <td class="p-4">09/02/25</td>
-                        <td class="p-4">Tarjeta</td>
-                        <td class="p-4">1300</td>
-                        <td class="p-4">1300</td>
+                        <td class="p-4"><?php echo date('d/m/y', strtotime($venta['FechaPago'])); ?></td>
+                        <td class="p-4"><?php echo $venta['MetodoPago']; ?></td>
+                        <td class="p-4"><?php echo $venta['PagoInicial']; ?></td>
+                        <td class="p-4"><?php echo $venta['Deuda']; ?></td>
                         <td class="p-4">
-                            <span class="px-3 py-1 rounded-full bg-white/10 text-sm">Pendiente</span>
+                            <span class="px-3 py-1 rounded-full bg-white/10 text-sm"><?php echo $venta['Estado'] ? 'Pagado' : 'Pendiente'; ?></span>
                         </td>
                     </tr>
                 </tbody>
@@ -66,7 +82,7 @@
         </div>
 
         <div class="flex justify-start">
-            <button class="px-6 py-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors">
+            <button onclick="window.history.back()" class="px-6 py-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors">
                 Anterior
             </button>
         </div>

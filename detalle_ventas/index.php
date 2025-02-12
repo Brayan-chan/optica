@@ -61,7 +61,7 @@ $result = $conn->query($sql);
                             <td class="p-4"><?php echo $row['Cliente']; ?></td>
                             <td class="p-4"><?php echo $row['TelefonoCliente']; ?></td>
                             <td class="p-4"><?php echo $row['SucursalNombre']; ?></td>
-                            <td class="p-4"><button onclick="masDetalles()" class="px-4 py-1 rounded-full bg-white/10 hover:bg-white/20 text-sm">Detalles</button></td>
+                            <td class="p-4"><button onclick="masDetalles(<?php echo $row['IdV']; ?>)" class="px-4 py-1 rounded-full bg-white/10 hover:bg-white/20 text-sm">Detalles</button></td>
                         </tr>
                     <?php endwhile; ?>
                 </tbody>
@@ -80,8 +80,8 @@ $result = $conn->query($sql);
 </body>
 
 <script>
-    function masDetalles() {
-        window.location.href = '../mas_detalles/index.php';
+    function masDetalles(idVenta) {
+        window.location.href = '../mas_detalles/index.php?idVenta=' + idVenta;
     }
 </script>
 
