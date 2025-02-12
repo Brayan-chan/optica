@@ -57,6 +57,10 @@ $products = getProductsByType($type);
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(5px);
         }
+
+        option {
+            background: #1a1a1a;
+        }
     </style>
 </head>
 <body class="min-h-screen p-6">
